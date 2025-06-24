@@ -5,23 +5,50 @@ import {ProjectResponse} from "@/type/ProjectResponse";
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {ListChecks, Users} from 'lucide-react';
+import {useAuth} from "@/context/AppAuthProvider";
+import {useWorkspace} from "@/context/WorkspaceProvider";
+import {useEffect, useState} from "react";
 
-const project: ProjectResponse = {
-    projectId: 1,
-    projectName: 'backend project',
-    workspaceId: 1,
-    description: 'backend project',
-    createdDate: new Date(),
-    projectTags: [
-        {
-            tagId: 1,
-            tagName: 'backend'
-        }
-    ],
-    type: 'api'
+interface ProjectDetailsComponentProps {
+    projectId: number;
+    setCurrentProjectForUse?: (currentProject: ProjectResponse) => void
 }
 
-const ProjectDetailsComponent = () => {
+const ProjectDetailsComponent = ({projectId, setCurrentProjectForUse}: ProjectDetailsComponentProps) => {
+
+    const { token } = useAuth()
+    const { currentWorkspace } = useWorkspace()
+
+    const [project, setProject] = useState<ProjectResponse>()
+
+    const baseUrl = process.env.NEXT_PUBLIC_GATEWAY_URL
+    const aggregatorPath = process.env.NEXT_PUBLIC_AGGREGATOR_SERVICE_PATH
+
+    const loadProject = async (projectId: number) => {
+        console.log(`${projectId}`)
+        const response = await fetch(`${baseUrl}${aggregatorPath}/projects/${projectId}`, {
+            method: 'GET',
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "workspaceId": `${currentWorkspace?.workspaceId}`
+            }
+        })
+        let loadedProject = await response.json();
+        setProject(loadedProject)
+        setCurrentProjectForUse && setCurrentProjectForUse(loadedProject)
+    }
+
+    useEffect(() => {
+        loadProject(projectId)
+    }, []);
+
+
+
+    if (!project) {
+        return <div>
+            No content
+        </div>
+    }
 
     return (
         <Card className="hover:shadow-md transition-shadow h-full flex flex-col">
@@ -51,11 +78,6 @@ const ProjectDetailsComponent = () => {
                         Создан: {new Date(project.createdDate).toLocaleDateString()}
                     </Badge>
                 </div>
-                {/*<Link href={`/spaces/${spaceId}/projects/${project.id}`}>
-                    <Button variant="outline" className="w-full">
-                        Открыть проект
-                    </Button>
-                </Link>*/}
             </CardContent>
         </Card>
     );

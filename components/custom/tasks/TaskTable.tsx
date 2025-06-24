@@ -26,8 +26,11 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {ScrollArea} from "@/components/ui/scroll-area";
 import TaskDetailsDialog from "@/components/custom/tasks/TaskDetails";
 
+interface TaskTableComponentProps {
+    currentProject?: ProjectResponse
+}
 
-const TaskTableComponent = () => {
+const TaskTableComponent = ({currentProject}: TaskTableComponentProps) => {
     const {token} = useAuth();
     const {currentWorkspace} = useWorkspace();
 
@@ -78,9 +81,16 @@ const TaskTableComponent = () => {
         setLoading(true);
         try {
             const tasksUrl = `${baseUrl}${process.env.NEXT_PUBLIC_AGGREGATOR_SERVICE_PATH}`;
-            const projectsParam = selectedProjects.length > 0
-                ? `&projects=${selectedProjects.join(",")}`
-                : "";
+            let projectsParam
+            if (currentProject) {
+                projectsParam = `&projects=${currentProject.projectId}`
+            } else {
+                projectsParam = selectedProjects.length > 0
+                    ? `&projects=${selectedProjects.join(",")}`
+                    : "";
+            }
+
+            console.log(`tasks request params: ${projectsParam}`)
 
             const response = await fetch(
                 `${tasksUrl}/tasks?offset=${offset}&limit=${limit}${projectsParam}`,
@@ -185,7 +195,7 @@ const TaskTableComponent = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-800">Tasks</h1>
                         <p className="text-gray-600">
-                            {totalCount} tasks in {currentWorkspace?.workspaceName}
+                            {totalCount} tasks in {currentProject ? currentProject.projectName : currentWorkspace?.workspaceName}
                         </p>
                     </div>
 
@@ -206,24 +216,29 @@ const TaskTableComponent = () => {
                                 </TabsList>
                             </Tabs>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline">
-                                        <Filter className="h-4 w-4 mr-1"/> Projects
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="max-h-60 overflow-y-auto">
-                                    {projects.map(project => (
-                                        <DropdownMenuCheckboxItem
-                                            key={project.projectId}
-                                            checked={selectedProjects.includes(project.projectId)}
-                                            onCheckedChange={() => toggleProjectFilter(project.projectId)}
-                                        >
-                                            {project.projectName}
-                                        </DropdownMenuCheckboxItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            {!currentProject ? (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline">
+                                            <Filter className="h-4 w-4 mr-1"/> Projects
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="max-h-60 overflow-y-auto">
+                                        {projects.map(project => (
+                                            <DropdownMenuCheckboxItem
+                                                key={project.projectId}
+                                                checked={selectedProjects.includes(project.projectId)}
+                                                onCheckedChange={() => toggleProjectFilter(project.projectId)}
+                                            >
+                                                {project.projectName}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            ) : (
+                                <Button variant={"secondary"}>{currentProject?.projectName}</Button>
+                            )}
+
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -247,7 +262,7 @@ const TaskTableComponent = () => {
                             </DropdownMenu>
                         </div>
 
-                        <TaskCreateDialogComponent onCreateTask={handleTaskCreate}/>
+                        <TaskCreateDialogComponent onCreateTask={handleTaskCreate} defaultProject={currentProject}/>
                     </div>
                 </div>
             </div>

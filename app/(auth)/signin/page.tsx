@@ -39,13 +39,15 @@ const SignInPage = () => {
     });
 
 
+    const basicToken = process.env.NEXT_PUBLIC_BASIC_TOKEN
+
     const authenticate = async (data: z.infer<typeof LoginSchema>) => {
         try {
             const response = await fetch('http://localhost:10000/auth/v1/oauth2/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': 'Basic ZGVtby1jbGllbnQ6ZGVtby1jbGllbnQ='
+                    'Authorization': `Basic ${basicToken}`
                 },
                 body: new URLSearchParams({
                     grant_type: 'password',

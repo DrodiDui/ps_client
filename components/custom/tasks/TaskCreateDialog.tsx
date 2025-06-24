@@ -1,31 +1,25 @@
 'use client'
 
-import { TaskResponse } from "@/type/TaskResponse";
+import {TaskResponse} from "@/type/TaskResponse";
 import * as React from "react";
-import { useEffect, useState } from "react";
-import { ReferenceItemResponse } from "@/type/ReferenceItemResponse";
-import { toast } from "sonner";
-import { useWorkspace } from "@/context/WorkspaceProvider";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogTrigger,
-    DialogHeader
-} from "@/components/ui/dialog";
-import { Loader2, PlusIcon, Tags, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/context/AppAuthProvider";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ProjectResponse } from "@/type/ProjectResponse";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Label } from "@/components/ui/label";
+import {useEffect, useState} from "react";
+import {ReferenceItemResponse} from "@/type/ReferenceItemResponse";
+import {toast} from "sonner";
+import {useWorkspace} from "@/context/WorkspaceProvider";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
+import {Loader2, PlusIcon, Tags, User} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Textarea} from "@/components/ui/textarea";
+import {useAuth} from "@/context/AppAuthProvider";
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {ProjectResponse} from "@/type/ProjectResponse";
+import {ScrollArea} from "@/components/ui/scroll-area";
+import {Label} from "@/components/ui/label";
 import {TagResponse} from "@/type/TagResponse";
 import {MemberResponse} from "@/type/MemberResponse";
 
@@ -45,11 +39,17 @@ interface TaskCreateDialogComponentProps {
     onCreateTask: (newTask: TaskResponse) => void;
     className?: string | null;
     defaultStatusCode?: string;
+    defaultProject?: ProjectResponse
 }
 
-const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode }: TaskCreateDialogComponentProps) => {
-    const { token } = useAuth();
-    const { currentWorkspace } = useWorkspace();
+const TaskCreateDialogComponent = ({
+                                       onCreateTask,
+                                       className,
+                                       defaultStatusCode,
+                                       defaultProject
+                                   }: TaskCreateDialogComponentProps) => {
+    const {token} = useAuth();
+    const {currentWorkspace} = useWorkspace();
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,7 +69,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
             taskStatusCode: defaultStatusCode || "",
             taskPriorityCode: "",
             taskTypeCode: "",
-            projectId: 0,
+            projectId: defaultProject?.projectId || 0,
             workspaceId: currentWorkspace?.workspaceId || 0,
             tagIds: []
         }
@@ -95,13 +95,13 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
             // Загрузка статусов, приоритетов и типов задач
             const references = await Promise.all([
                 fetch(`${baseUrl}${referencePath}/references/items?referenceType=TASK_STATUS`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 }),
                 fetch(`${baseUrl}${referencePath}/references/items?referenceType=TASK_PRIORITY`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 }),
                 fetch(`${baseUrl}${referencePath}/references/items?referenceType=TASK_TYPE`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 }),
                 /*fetch(`${baseUrl}${referencePath}/references/items?referenceType=TASK_TAG`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -115,19 +115,21 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
             setTaskStatus(statusRes);
             setTaskPriority(priorityRes);
             setTaskType(typeRes);
-           /* setTags(tagsRes);*/
+            /* setTags(tagsRes);*/
 
             // Загрузка проектов
-            const projectsRes = await fetch(
-                `${baseUrl}${aggregatorPath}/projects`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        workspaceId: currentWorkspace.workspaceId.toString()
+            if (!defaultProject) {
+                const projectsRes = await fetch(
+                    `${baseUrl}${aggregatorPath}/projects`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            workspaceId: currentWorkspace.workspaceId.toString()
+                        }
                     }
-                }
-            );
-            setProjects(await projectsRes.json());
+                );
+                setProjects(await projectsRes.json());
+            }
 
             // Загрузка сотрудников (предполагая эндпоинт)
             /*const employeesRes = await fetch(
@@ -192,11 +194,11 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
             <DialogTrigger asChild>
                 {className ? (
                     <Button variant="outline" className={className}>
-                        <PlusIcon size={25} />
+                        <PlusIcon size={25}/>
                     </Button>
                 ) : (
                     <Button variant="outline" size="sm">
-                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <PlusIcon className="mr-2 h-4 w-4"/>
                         <span>Добавить задачу</span>
                     </Button>
                 )}
@@ -209,7 +211,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
 
                 {loading ? (
                     <div className="flex justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <Loader2 className="h-8 w-8 animate-spin"/>
                     </div>
                 ) : error ? (
                     <div className="text-center py-8 text-destructive">
@@ -237,7 +239,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                     <FormField
                                         control={form.control}
                                         name="title"
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <FormItem>
                                                 <FormLabel>Название задачи</FormLabel>
                                                 <FormControl>
@@ -246,7 +248,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                         {...field}
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage/>
                                             </FormItem>
                                         )}
                                     />
@@ -255,7 +257,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                     <FormField
                                         control={form.control}
                                         name="description"
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <FormItem>
                                                 <FormLabel>Подробное описание</FormLabel>
                                                 <FormControl>
@@ -265,7 +267,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                         className="min-h-[150px]"
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage/>
                                             </FormItem>
                                         )}
                                     />
@@ -282,7 +284,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                 <FormField
                                                     control={form.control}
                                                     name="taskStatusCode"
-                                                    render={({ field }) => (
+                                                    render={({field}) => (
                                                         <FormItem>
                                                             <FormLabel>
                                                                 Статус {defaultStatusCode && (
@@ -298,18 +300,19 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                             >
                                                                 <FormControl>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder="Выберите статус" />
+                                                                        <SelectValue placeholder="Выберите статус"/>
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
                                                                     {taskStatus.map((item) => (
-                                                                        <SelectItem key={item.itemCode} value={item.itemCode}>
+                                                                        <SelectItem key={item.itemCode}
+                                                                                    value={item.itemCode}>
                                                                             {item.description}
                                                                         </SelectItem>
                                                                     ))}
                                                                 </SelectContent>
                                                             </Select>
-                                                            <FormMessage />
+                                                            <FormMessage/>
                                                         </FormItem>
                                                     )}
                                                 />
@@ -318,24 +321,25 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                 <FormField
                                                     control={form.control}
                                                     name="taskPriorityCode"
-                                                    render={({ field }) => (
+                                                    render={({field}) => (
                                                         <FormItem>
                                                             <FormLabel>Приоритет</FormLabel>
                                                             <Select onValueChange={field.onChange} value={field.value}>
                                                                 <FormControl>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder="Выберите приоритет" />
+                                                                        <SelectValue placeholder="Выберите приоритет"/>
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
                                                                     {taskPriority.map((item) => (
-                                                                        <SelectItem key={item.itemCode} value={item.itemCode}>
+                                                                        <SelectItem key={item.itemCode}
+                                                                                    value={item.itemCode}>
                                                                             {item.description}
                                                                         </SelectItem>
                                                                     ))}
                                                                 </SelectContent>
                                                             </Select>
-                                                            <FormMessage />
+                                                            <FormMessage/>
                                                         </FormItem>
                                                     )}
                                                 />
@@ -344,24 +348,25 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                 <FormField
                                                     control={form.control}
                                                     name="taskTypeCode"
-                                                    render={({ field }) => (
+                                                    render={({field}) => (
                                                         <FormItem>
                                                             <FormLabel>Тип задачи</FormLabel>
                                                             <Select onValueChange={field.onChange} value={field.value}>
                                                                 <FormControl>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder="Выберите тип" />
+                                                                        <SelectValue placeholder="Выберите тип"/>
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
                                                                     {taskType.map((item) => (
-                                                                        <SelectItem key={item.itemCode} value={item.itemCode}>
+                                                                        <SelectItem key={item.itemCode}
+                                                                                    value={item.itemCode}>
                                                                             {item.description}
                                                                         </SelectItem>
                                                                     ))}
                                                                 </SelectContent>
                                                             </Select>
-                                                            <FormMessage />
+                                                            <FormMessage/>
                                                         </FormItem>
                                                     )}
                                                 />
@@ -371,13 +376,13 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                         {/* Теги */}
                                         <div className="bg-muted/50 p-4 rounded-lg">
                                             <Label className="mb-4 block font-semibold flex items-center gap-2">
-                                                <Tags className="h-4 w-4" /> Теги
+                                                <Tags className="h-4 w-4"/> Теги
                                             </Label>
 
                                             <FormField
                                                 control={form.control}
                                                 name="tagIds"
-                                                render={({ field }) => (
+                                                render={({field}) => (
                                                     <FormItem>
                                                         {/*<MultiSelect
                                                             options={tags.map(tag => ({
@@ -388,7 +393,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                             onChange={(values) => field.onChange(values.map(Number))}
                                                             placeholder="Выберите теги"
                                                         />*/}
-                                                        <FormMessage />
+                                                        <FormMessage/>
                                                     </FormItem>
                                                 )}
                                             />
@@ -402,7 +407,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
 
                                             <div className="space-y-4">
                                                 {/* Проект */}
-                                                <FormField
+                                                {/*<FormField
                                                     control={form.control}
                                                     name="projectId"
                                                     render={({ field }) => (
@@ -431,16 +436,54 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                             <FormMessage />
                                                         </FormItem>
                                                     )}
+                                                />*/}
+
+                                                <FormField
+                                                    control={form.control}
+                                                    name="projectId"
+                                                    render={({field}) => (
+                                                        <FormItem>
+                                                            <FormLabel>
+                                                                Проект {defaultProject && (
+                                                                <span className="text-xs text-muted-foreground ml-2">
+                    {defaultProject.projectName}(По умолчанию)
+                  </span>
+                                                            )}
+                                                            </FormLabel>
+                                                            <Select
+                                                                onValueChange={field.onChange}
+                                                                value={field.value.toString()}
+                                                                disabled={!!defaultProject} // Блокируем выбор, если статус задан
+                                                            >
+                                                                <FormControl>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder="Выберите проект"/>
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    {projects.map((project) => (
+                                                                        <SelectItem
+                                                                            key={project.projectId}
+                                                                            value={project.projectId.toString()}
+                                                                        >
+                                                                            {project.projectName}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage/>
+                                                        </FormItem>
+                                                    )}
                                                 />
 
                                                 {/* Исполнитель */}
                                                 <FormField
                                                     control={form.control}
                                                     name="assigneeId"
-                                                    render={({ field }) => (
+                                                    render={({field}) => (
                                                         <FormItem>
                                                             <FormLabel className="flex items-center gap-2">
-                                                                <User className="h-4 w-4" /> Исполнитель
+                                                                <User className="h-4 w-4"/> Исполнитель
                                                             </FormLabel>
                                                             {/*<Select
                                                                 onValueChange={field.onChange}
@@ -468,7 +511,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                                                     ))}
                                                                 </SelectContent>
                                                             </Select>*/}
-                                                            <FormMessage />
+                                                            <FormMessage/>
                                                         </FormItem>
                                                     )}
                                                 />
@@ -507,7 +550,7 @@ const TaskCreateDialogComponent = ({ onCreateTask, className, defaultStatusCode 
                                         disabled={form.formState.isSubmitting}
                                     >
                                         {form.formState.isSubmitting && (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                         )}
                                         Создать задачу
                                     </Button>

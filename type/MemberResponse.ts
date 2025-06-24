@@ -1,3 +1,5 @@
+import {ReferenceItemResponse} from "@/type/ReferenceItemResponse";
+
 export interface MemberResponse {
     memberId: number;
     username: string;
@@ -5,5 +7,8 @@ export interface MemberResponse {
     firstName: string;
     lastName: string;
     middleName: string | null;
-    avatarUrl: string;
+    memberRole: ReferenceItemResponse;
+    memberStatus: ReferenceItemResponse;
+    avatarUrl?: string;
+    workspaceMemberRoles: string[]
 }
