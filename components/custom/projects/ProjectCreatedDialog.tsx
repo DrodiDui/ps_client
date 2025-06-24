@@ -16,14 +16,15 @@ import { useAuth } from "@/context/AppAuthProvider";
 import { ReferenceItemResponse } from "@/type/ReferenceItemResponse";
 import {useWorkspace} from "@/context/WorkspaceProvider";
 import IconRenderer from "@/components/custom/layout/IconRenderer";
+import {Checkbox} from "@/components/ui/checkbox";
 
 // Схема валидации
 const ProjectSchema = z.object({
     projectName: z.string().min(5, "Название должно быть не менее 5 символов"),
     description: z.string().min(1, "Описание обязательно"),
     projectTypeCode: z.string().min(1, "Тип проекта обязателен"),
-    workspaceId: z.number()
-
+    workspaceId: z.number(),
+    gitProviderCode: z.string().optional()
 });
 
 interface ProjectAppDialogProps {
@@ -33,8 +34,10 @@ interface ProjectAppDialogProps {
 const ProjectAppDialog = ({ onProjectCreated }: ProjectAppDialogProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [projectTypes, setProjectTypes] = useState<ReferenceItemResponse[]>([]);
+    const [gitProviders, setGitProviders] = useState<ReferenceItemResponse[]>([])
     const [isLoading, setIsLoading] = useState(false);
     const { token } = useAuth();
+    const [useGitRepository, setUseGitRepository] = useState<boolean>(false)
 
     const { currentWorkspace } = useWorkspace()
 
@@ -44,13 +47,14 @@ const ProjectAppDialog = ({ onProjectCreated }: ProjectAppDialogProps) => {
             projectName: "",
             description: "",
             projectTypeCode: "",
-            workspaceId: currentWorkspace?.workspaceId
+            workspaceId: currentWorkspace?.workspaceId,
         }
     });
 
     useEffect(() => {
         if (isOpen) {
-            fetchProjectTypes();
+            fetchProjectTypes()
+            fetchGitProviders()
         }
     }, [isOpen]);
 
@@ -77,6 +81,29 @@ const ProjectAppDialog = ({ onProjectCreated }: ProjectAppDialogProps) => {
             setIsLoading(false);
         }
     };
+
+    const fetchGitProviders = async () => {
+        setIsLoading(true);
+        try {
+            const url = `${process.env.NEXT_PUBLIC_GATEWAY_URL}${process.env.NEXT_PUBLIC_REFERENCE_SERVICE_PATH}/references/items`;
+            const response = await fetch(`${url}?referenceType=GIT_PROVIDER`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка загрузки типов проектов: ${response.status}`);
+            }
+
+            setGitProviders(await response.json());
+
+        } catch (error) {
+
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     // Функция для извлечения метаданных иконки
     const getIconMetadata = (item: ReferenceItemResponse) => {
@@ -221,6 +248,47 @@ const ProjectAppDialog = ({ onProjectCreated }: ProjectAppDialogProps) => {
                                 </FormItem>
                             )}
                         />
+                        <div className={'flex gap-3'}>
+                            <Checkbox onClick={() => setUseGitRepository(!useGitRepository)}/>
+                            {useGitRepository && (
+                                <FormField
+                                    control={form.control}
+                                    name="gitProviderCode"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Тип репозитория</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={isLoading}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Выберите тип проекта" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {gitProviders.map((type) => {
+                                                        const iconData = getIconMetadata(type);
+                                                        return (
+                                                            <SelectItem
+                                                                key={`git-providers-${type.referenceItemId}`}
+                                                                value={type.itemCode}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <span>{type.description}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                        </div>
 
                         {/* Кнопки формы */}
                         <div className="flex justify-end gap-3 pt-4">

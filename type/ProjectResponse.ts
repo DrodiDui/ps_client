@@ -7,7 +7,7 @@ export interface ProjectResponse {
     description: string;
     createdDate: Date;
     projectType: ReferenceItemResponse;
-    hasGit?: boolean
+    projectGitProvider: ReferenceItemResponse
 }
 
 export interface ProjectTag {
