@@ -1,4 +1,3 @@
-// components/custom/IconRenderer.tsx
 import * as LucideIcons from 'lucide-react';
 import React from 'react';
 
@@ -15,6 +14,7 @@ const IconRenderer = ({
                           size = 16,
                           className = ''
                       }: IconRendererProps) => {
+    // Проверка на отсутствие имени иконки
     if (!iconName) {
         return (
             <div
@@ -24,8 +24,11 @@ const IconRenderer = ({
         );
     }
 
-    const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons];
+    // Типизированное получение компонента иконки
+    const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons] as
+        React.FC<React.SVGProps<SVGSVGElement> & { size?: number }>;
 
+    // Проверка на существование компонента
     if (!IconComponent) {
         return (
             <div
@@ -35,10 +38,12 @@ const IconRenderer = ({
         );
     }
 
+    // Рендер иконки с правильными пропсами
     return (
         <IconComponent
-            className={`text-${color}-500 ${className}`}
+            className={`${className}`}
             size={size}
+            color={color}
             style={{ color: `var(--color-${color})` }}
         />
     );

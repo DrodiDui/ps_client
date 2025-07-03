@@ -17,8 +17,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedToken = localStorage.getItem('authToken');
         if (storedToken) setToken(storedToken);
 
-        const soreUserId = localStorage.getItem('userId');
-        if (soreUserId) setUserId(Number(soreUserId))
+    const storedUserId = localStorage.getItem('userId');
+        if (storedUserId) setUserId(Number(storedUserId))
     }, []);
 
     const login = (token: string, userId: number) => {

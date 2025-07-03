@@ -45,8 +45,6 @@ const ProjectPage = () => {
 
     const [currentProject, setCurrentProject] = useState<ProjectResponse>()
 
-    console.log(`Current Project in project page: ${currentProject?.projectName}`)
-    console.log(`Current Project has git repo?: ${currentProject?.hasGit}`)
 
     const handleCurrentProject = (project: ProjectResponse) => {
         setCurrentProject({
@@ -56,7 +54,7 @@ const ProjectPage = () => {
             workspaceId: project.workspaceId,
             projectType: project.projectType,
             createdDate: project.createdDate,
-            hasGit: true
+            projectGitProvider: project.projectGitProvider
         })
     }
 
@@ -101,7 +99,7 @@ const ProjectPage = () => {
                         <TaskTableComponent currentProject={currentProject}/>
                     )}
 
-                    {currentProject?.hasGit && activeTab === 'git' && (
+                    {currentProject?.projectGitProvider && activeTab === 'git' && (
                         <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
                             repop
                         </Card>

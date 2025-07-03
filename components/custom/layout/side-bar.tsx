@@ -1,11 +1,8 @@
 'use client'
 
-import {Button} from "@/components/ui/button";
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
 import {Sidebar, SidebarContent, SidebarHeader, SidebarRail, useSidebar} from "@/components/ui/sidebar";
-import {cn} from "@/lib/utils";
 import {
-    ArrowDown, Container,
+    Container,
     Folder,
     LayoutGrid,
     ListChecks,
@@ -93,7 +90,7 @@ const menuItems = [
     {
         id: 6,
         title: "Repositories",
-        url: '#',
+        url: '/repositories',
         icon: UsersRound,
         subItem: [
             {

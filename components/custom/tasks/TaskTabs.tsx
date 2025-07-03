@@ -99,7 +99,6 @@ const TaskTabsComponent = () => {
 
                     {activeTab === 'card' && (
                         <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                            <TaskStatusCardComponent/>
                         </Card>
                     )}
 

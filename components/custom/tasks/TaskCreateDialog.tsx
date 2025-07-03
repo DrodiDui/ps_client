@@ -102,20 +102,22 @@ const TaskCreateDialogComponent = ({
                 }),
                 fetch(`${baseUrl}${referencePath}/references/items?referenceType=TASK_TYPE`, {
                     headers: {Authorization: `Bearer ${token}`}
-                }),
-                /*fetch(`${baseUrl}${referencePath}/references/items?referenceType=TASK_TAG`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                })*/
+                })
             ]);
 
-            const [statusRes, priorityRes, typeRes, tagsRes] = await Promise.all(
+            // Check if all requests were successful
+            const failedRequest = references.find(res => !res.ok);
+            if (failedRequest) {
+                throw new Error(`Failed to fetch reference data: ${failedRequest.status}`);
+            }
+
+            const [statusRes, priorityRes, typeRes] = await Promise.all(
                 references.map(res => res.json())
             );
 
             setTaskStatus(statusRes);
             setTaskPriority(priorityRes);
             setTaskType(typeRes);
-            /* setTags(tagsRes);*/
 
             // Загрузка проектов
             if (!defaultProject) {

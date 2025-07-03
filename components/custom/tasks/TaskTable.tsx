@@ -15,7 +15,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {ChevronLeft, ChevronRight, Filter, List, Settings, Trash, User} from "lucide-react";
+import {ChevronLeft, ChevronRight, Filter, List, Settings, Trash, User, Calendar, Target, Zap, Search, MoreHorizontal, Eye} from "lucide-react";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Badge} from "@/components/ui/badge";
@@ -24,6 +24,8 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {ScrollArea} from "@/components/ui/scroll-area";
+import {Input} from "@/components/ui/input";
+import {Separator} from "@/components/ui/separator";
 import TaskDetailsDialog from "@/components/custom/tasks/TaskDetails";
 
 interface TaskTableComponentProps {
@@ -50,6 +52,7 @@ const TaskTableComponent = ({currentProject}: TaskTableComponentProps) => {
     });
     const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
     const [selectedTask, setSelectedTask] = useState<TaskResponse | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     const baseUrl = `${process.env.NEXT_PUBLIC_GATEWAY_URL}`;
 
